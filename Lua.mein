@@ -1,0 +1,773 @@
+-- Classico Horror UI Library Source Code (Fixed & Optimized)
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local ClassicoLib = {}
+
+-- Sound Setup
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://12221967"
+clickSound.Volume = 0.6
+
+-- Helper Bevel Function
+local function applyHorrorBevel(frame, lightColor, darkColor)
+	for _, child in ipairs(frame:GetChildren()) do
+		if child.Name:find("Bevel") then child:Destroy() end
+	end
+
+	local top = Instance.new("Frame")
+	top.Name = "BevelTop"
+	top.Size = UDim2.new(1, 0, 0, 2)
+	top.BackgroundColor3 = lightColor or Color3.fromRGB(255, 0, 0)
+	top.BorderSizePixel = 0
+	top.ZIndex = frame.ZIndex + 2
+	top.Parent = frame
+
+	local left = Instance.new("Frame")
+	left.Name = "BevelLeft"
+	left.Size = UDim2.new(0, 2, 1, 0)
+	left.BackgroundColor3 = lightColor or Color3.fromRGB(255, 0, 0)
+	left.BorderSizePixel = 0
+	left.ZIndex = frame.ZIndex + 2
+	left.Parent = frame
+
+	local bottom = Instance.new("Frame")
+	bottom.Name = "BevelBottom"
+	bottom.Size = UDim2.new(1, 0, 0, 2)
+	bottom.Position = UDim2.new(0, 0, 1, -2)
+	bottom.BackgroundColor3 = darkColor or Color3.fromRGB(80, 0, 0)
+	bottom.BorderSizePixel = 0
+	bottom.ZIndex = frame.ZIndex + 2
+	bottom.Parent = frame
+
+	local right = Instance.new("Frame")
+	right.Name = "BevelRight"
+	right.Size = UDim2.new(0, 2, 1, 0)
+	right.Position = UDim2.new(1, -2, 0, 0)
+	right.BackgroundColor3 = darkColor or Color3.fromRGB(80, 0, 0)
+	right.BorderSizePixel = 0
+	right.ZIndex = frame.ZIndex + 2
+	right.Parent = frame
+end
+
+function ClassicoLib:CreateWindow(config)
+	config = config or {}
+	local title = config.Title or "CLASSICO HORROR HUB"
+	local subTitle = config.SubTitle or "Classic Roblox Script Hub"
+	local windowSize = config.Size or UDim2.new(0, 586, 0, 350)
+	local mainBgColor = config.MainColor or Color3.fromRGB(15, 15, 15)
+	local headerColor = config.HeaderColor or Color3.fromRGB(30, 0, 0)
+	local accentColor = config.BevelColor or Color3.fromRGB(255, 30, 30)
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "ClassicoHorrorGUI"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
+	clickSound.Parent = screenGui
+
+	local notifContainer = Instance.new("Frame")
+	notifContainer.Name = "NotifContainer"
+	notifContainer.Size = UDim2.new(0, 260, 1, -20)
+	notifContainer.Position = UDim2.new(1, -270, 0, 10)
+	notifContainer.BackgroundTransparency = 1
+	notifContainer.Parent = screenGui
+
+	local notifLayout = Instance.new("UIListLayout")
+	notifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	notifLayout.Padding = UDim.new(0, 8)
+	notifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	notifLayout.Parent = notifContainer
+
+	local WindowObject = {}
+
+	function WindowObject:Notification(notifTitle, notifText, duration)
+		duration = duration or 3
+		local notifFrame = Instance.new("Frame")
+		notifFrame.Size = UDim2.new(1, 0, 0, 60)
+		notifFrame.BackgroundColor3 = mainBgColor
+		notifFrame.BorderSizePixel = 0
+		notifFrame.ZIndex = 20
+		notifFrame.Parent = notifContainer
+
+		applyHorrorBevel(notifFrame, accentColor, Color3.fromRGB(80, 0, 0))
+
+		local titleLbl = Instance.new("TextLabel")
+		titleLbl.Size = UDim2.new(1, -10, 0, 22)
+		titleLbl.Position = UDim2.new(0, 8, 0, 4)
+		titleLbl.BackgroundTransparency = 1
+		titleLbl.Text = notifTitle
+		titleLbl.TextColor3 = accentColor
+		titleLbl.Font = Enum.Font.Creepster
+		titleLbl.TextSize = 18
+		titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+		titleLbl.ZIndex = 21
+		titleLbl.Parent = notifFrame
+
+		local textLbl = Instance.new("TextLabel")
+		textLbl.Size = UDim2.new(1, -10, 0, 30)
+		textLbl.Position = UDim2.new(0, 8, 0, 24)
+		textLbl.BackgroundTransparency = 1
+		textLbl.Text = notifText
+		textLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+		textLbl.Font = Enum.Font.Creepster
+		textLbl.TextSize = 15
+		textLbl.TextXAlignment = Enum.TextXAlignment.Left
+		textLbl.ZIndex = 21
+		textLbl.Parent = notifFrame
+
+		clickSound:Play()
+
+		task.spawn(function()
+			task.wait(duration)
+			local tween = TweenService:Create(notifFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+			TweenService:Create(titleLbl, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+			TweenService:Create(textLbl, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+			for _, v in ipairs(notifFrame:GetChildren()) do
+				if v:IsA("Frame") then TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play() end
+			end
+			tween:Play()
+			tween.Completed:Wait()
+			notifFrame:Destroy()
+		end)
+	end
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = windowSize
+	mainFrame.Position = UDim2.new(0.5, -windowSize.X.Offset/2, 0.5, -windowSize.Y.Offset/2)
+	mainFrame.BackgroundColor3 = mainBgColor
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.ClipsDescendants = true
+	mainFrame.Visible = false
+	mainFrame.ZIndex = 1
+	mainFrame.Parent = screenGui
+
+	local bgImage = Instance.new("ImageLabel")
+	bgImage.Name = "BackgroundImage"
+	bgImage.Size = UDim2.new(1, 0, 1, 0)
+	bgImage.Position = UDim2.new(0, 0, 0, 0)
+	bgImage.Image = "rbxassetid://134674955517480"
+	bgImage.ScaleType = Enum.ScaleType.Crop
+	bgImage.BackgroundTransparency = 1
+	bgImage.ZIndex = 1
+	bgImage.Parent = mainFrame
+
+	local glossGlow = Instance.new("Frame")
+	glossGlow.Name = "GlossGlow"
+	glossGlow.Size = UDim2.new(1, 0, 1, 0)
+	glossGlow.BackgroundTransparency = 0.85
+	glossGlow.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+	glossGlow.ZIndex = 2
+	glossGlow.Parent = mainFrame
+
+	applyHorrorBevel(mainFrame, Color3.fromRGB(255, 60, 60), Color3.fromRGB(80, 0, 0))
+
+	local headerPanel = Instance.new("Frame")
+	headerPanel.Size = UDim2.new(1, -12, 0, 48)
+	headerPanel.Position = UDim2.new(0, 6, 0, 6)
+	headerPanel.BackgroundColor3 = headerColor
+	headerPanel.BackgroundTransparency = 0.2
+	headerPanel.BorderSizePixel = 0
+	headerPanel.ZIndex = 3
+	headerPanel.Parent = mainFrame
+	applyHorrorBevel(headerPanel, Color3.fromRGB(255, 80, 80), Color3.fromRGB(100, 0, 0))
+
+	local titleLbl = Instance.new("TextLabel")
+	titleLbl.Size = UDim2.new(1, -90, 0, 24)
+	titleLbl.Position = UDim2.new(0, 10, 0, 2)
+	titleLbl.BackgroundTransparency = 1
+	titleLbl.Text = title
+	titleLbl.TextColor3 = Color3.fromRGB(255, 80, 80)
+	titleLbl.TextSize = 20
+	titleLbl.Font = Enum.Font.Creepster
+	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+	titleLbl.ZIndex = 4
+	titleLbl.Parent = headerPanel
+
+	local subTitleLbl = Instance.new("TextLabel")
+	subTitleLbl.Size = UDim2.new(1, -90, 0, 18)
+	subTitleLbl.Position = UDim2.new(0, 10, 0, 24)
+	subTitleLbl.BackgroundTransparency = 1
+	subTitleLbl.Text = subTitle
+	subTitleLbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+	subTitleLbl.TextSize = 14
+	subTitleLbl.Font = Enum.Font.Creepster
+	subTitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+	subTitleLbl.ZIndex = 4
+	subTitleLbl.Parent = headerPanel
+
+	local minimizeBtn = Instance.new("TextButton")
+	minimizeBtn.Size = UDim2.new(0, 26, 0, 24)
+	minimizeBtn.Position = UDim2.new(1, -60, 0, 12)
+	minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+	minimizeBtn.BorderSizePixel = 0
+	minimizeBtn.Text = "-"
+	minimizeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+	minimizeBtn.Font = Enum.Font.Creepster
+	minimizeBtn.TextSize = 22
+	minimizeBtn.ZIndex = 5
+	minimizeBtn.Parent = headerPanel
+	applyHorrorBevel(minimizeBtn)
+
+	local closeBtn = Instance.new("TextButton")
+	closeBtn.Size = UDim2.new(0, 26, 0, 24)
+	closeBtn.Position = UDim2.new(1, -30, 0, 12)
+	closeBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+	closeBtn.BorderSizePixel = 0
+	closeBtn.Text = "X"
+	closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeBtn.Font = Enum.Font.Creepster
+	closeBtn.TextSize = 20
+	closeBtn.ZIndex = 5
+	closeBtn.Parent = headerPanel
+	applyHorrorBevel(closeBtn, Color3.fromRGB(255, 120, 120), Color3.fromRGB(100, 0, 0))
+
+	local bodyContainer = Instance.new("Frame")
+	bodyContainer.Size = UDim2.new(1, -12, 1, -68)
+	bodyContainer.Position = UDim2.new(0, 6, 0, 60)
+	bodyContainer.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	bodyContainer.BackgroundTransparency = 0.35
+	bodyContainer.BorderSizePixel = 0
+	bodyContainer.ZIndex = 3
+	bodyContainer.Parent = mainFrame
+	applyHorrorBevel(bodyContainer, Color3.fromRGB(80, 0, 0), accentColor)
+
+	local isMinimized = false
+	minimizeBtn.MouseButton1Click:Connect(function()
+		clickSound:Play()
+		isMinimized = not isMinimized
+		if isMinimized then
+			bodyContainer.Visible = false
+			mainFrame.Size = UDim2.new(windowSize.X.Scale, windowSize.X.Offset, 0, 60)
+			minimizeBtn.Text = "+"
+		else
+			mainFrame.Size = windowSize
+			bodyContainer.Visible = true
+			minimizeBtn.Text = "-"
+		end
+	end)
+
+	closeBtn.MouseButton1Click:Connect(function()
+		clickSound:Play()
+		if mainFrame:FindFirstChild("ConfirmFrame") then return end
+
+		local confirmFrame = Instance.new("Frame")
+		confirmFrame.Name = "ConfirmFrame"
+		confirmFrame.Size = UDim2.new(0, 280, 0, 130)
+		confirmFrame.Position = UDim2.new(0.5, -140, 0.5, -65)
+		confirmFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+		confirmFrame.BorderSizePixel = 0
+		confirmFrame.ZIndex = 30
+		confirmFrame.Parent = mainFrame
+		applyHorrorBevel(confirmFrame, Color3.fromRGB(255, 0, 0), Color3.fromRGB(100, 0, 0))
+
+		local msgLbl = Instance.new("TextLabel")
+		msgLbl.Size = UDim2.new(1, -20, 0, 50)
+		msgLbl.Position = UDim2.new(0, 10, 0, 10)
+		msgLbl.BackgroundTransparency = 1
+		msgLbl.Text = "Are you sure you want to close and destroy the script?"
+		msgLbl.TextColor3 = Color3.fromRGB(255, 180, 180)
+		msgLbl.Font = Enum.Font.Creepster
+		msgLbl.TextSize = 16
+		msgLbl.TextWrapped = true
+		msgLbl.ZIndex = 31
+		msgLbl.Parent = confirmFrame
+
+		local yesBtn = Instance.new("TextButton")
+		yesBtn.Size = UDim2.new(0, 110, 0, 32)
+		yesBtn.Position = UDim2.new(0, 20, 0, 75)
+		yesBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+		yesBtn.BorderSizePixel = 0
+		yesBtn.Text = "Yes, Close"
+		yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		yesBtn.Font = Enum.Font.Creepster
+		yesBtn.TextSize = 16
+		yesBtn.ZIndex = 31
+		yesBtn.Parent = confirmFrame
+		applyHorrorBevel(yesBtn, Color3.fromRGB(255, 100, 100), Color3.fromRGB(50, 0, 0))
+
+		local noBtn = Instance.new("TextButton")
+		noBtn.Size = UDim2.new(0, 110, 0, 32)
+		noBtn.Position = UDim2.new(1, -130, 0, 75)
+		noBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		noBtn.BorderSizePixel = 0
+		noBtn.Text = "Cancel"
+		noBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+		noBtn.Font = Enum.Font.Creepster
+		noBtn.TextSize = 16
+		noBtn.ZIndex = 31
+		noBtn.Parent = confirmFrame
+		applyHorrorBevel(noBtn, Color3.fromRGB(100, 100, 100), Color3.fromRGB(20, 20, 20))
+
+		yesBtn.MouseButton1Click:Connect(function()
+			clickSound:Play()
+			screenGui:Destroy()
+		end)
+
+		noBtn.MouseButton1Click:Connect(function()
+			clickSound:Play()
+			confirmFrame:Destroy()
+		end)
+	end)
+
+	-- 🛠️ إصلاح نظام التحريك (Drag Engine) بشكل كامل بدون أخطاء
+	local dragging, dragStart, startPos
+	headerPanel.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = mainFrame.Position
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local delta = input.Position - dragStart
+			mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+
+	local tabBar = Instance.new("ScrollingFrame")
+	tabBar.Name = "TabBar"
+	tabBar.Size = UDim2.new(1, -12, 0, 36)
+	tabBar.Position = UDim2.new(0, 6, 0, 6)
+	tabBar.BackgroundTransparency = 1
+	tabBar.BorderSizePixel = 0
+	tabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
+	tabBar.ScrollBarThickness = 3
+	tabBar.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
+	tabBar.ScrollingDirection = Enum.ScrollingDirection.Horizontal
+	tabBar.ZIndex = 5
+	tabBar.Parent = bodyContainer
+
+	local tabLayout = Instance.new("UIListLayout")
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.Padding = UDim.new(0, 8)
+	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tabLayout.Parent = tabBar
+
+	tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		tabBar.CanvasSize = UDim2.new(0, tabLayout.AbsoluteContentSize.X + 10, 0, 0)
+	end)
+
+	local tabPagesFolder = Instance.new("Folder")
+	tabPagesFolder.Name = "TabPages"
+	tabPagesFolder.Parent = bodyContainer
+
+	local activeTabBtn, activeTabPage
+	local tabCount = 0
+
+	function WindowObject:CreateTab(name)
+		tabCount = tabCount + 1
+		local currentOrder = tabCount
+
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0, 120, 1, -4)
+		btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+		btn.BackgroundTransparency = 0.2
+		btn.BorderSizePixel = 0
+		btn.Text = name
+		btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+		btn.Font = Enum.Font.Creepster
+		btn.TextSize = 18
+		btn.LayoutOrder = currentOrder
+		btn.ZIndex = 6
+		btn.Parent = tabBar
+		applyHorrorBevel(btn, Color3.fromRGB(150, 0, 0), Color3.fromRGB(40, 0, 0))
+
+		local page = Instance.new("ScrollingFrame")
+		page.Size = UDim2.new(1, -12, 1, -52)
+		page.Position = UDim2.new(0, 6, 0, 46)
+		page.BackgroundTransparency = 1
+		page.BorderSizePixel = 0
+		page.CanvasSize = UDim2.new(0, 0, 0, 0)
+		page.ScrollBarThickness = 6
+		page.ScrollBarImageColor3 = accentColor
+		page.Visible = false
+		page.ZIndex = 5
+		page.Parent = tabPagesFolder
+
+		local pageLayout = Instance.new("UIListLayout")
+		pageLayout.Padding = UDim.new(0, 8)
+		pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		pageLayout.Parent = page
+
+		pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			page.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 15)
+		end)
+
+		btn.MouseButton1Click:Connect(function()
+			clickSound:Play()
+			if activeTabBtn then
+				activeTabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+				activeTabBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+			end
+			if activeTabPage then activeTabPage.Visible = false end
+
+			btn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			page.Visible = true
+
+			activeTabBtn = btn
+			activeTabPage = page
+		end)
+
+		if currentOrder == 1 then
+			btn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			page.Visible = true
+			activeTabBtn = btn
+			activeTabPage = page
+		end
+
+		local TabObject = {}
+
+		function TabObject:CreateButton(text, callback)
+			local button = Instance.new("TextButton")
+			button.Size = UDim2.new(1, -10, 0, 36)
+			button.BackgroundColor3 = Color3.fromRGB(65, 0, 0)
+			button.BackgroundTransparency = 0.2
+			button.BorderSizePixel = 0
+			button.Text = text
+			button.TextColor3 = Color3.fromRGB(255, 200, 200)
+			button.Font = Enum.Font.Creepster
+			button.TextSize = 19
+			button.ZIndex = 6
+			button.Parent = page
+			applyHorrorBevel(button, accentColor, Color3.fromRGB(40, 0, 0))
+
+			button.MouseButton1Click:Connect(function()
+				clickSound:Play()
+				if callback then callback() end
+			end)
+		end
+
+		function TabObject:CreateToggle(text, callback)
+			local toggleFrame = Instance.new("Frame")
+			toggleFrame.Size = UDim2.new(1, -10, 0, 36)
+			toggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+			toggleFrame.BackgroundTransparency = 0.2
+			toggleFrame.BorderSizePixel = 0
+			toggleFrame.ZIndex = 6
+			toggleFrame.Parent = page
+			applyHorrorBevel(toggleFrame, Color3.fromRGB(150, 0, 0), Color3.fromRGB(30, 0, 0))
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, -70, 1, 0)
+			label.Position = UDim2.new(0, 10, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(220, 220, 220)
+			label.Font = Enum.Font.Creepster
+			label.TextSize = 18
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 7
+			label.Parent = toggleFrame
+
+			local toggleBtn = Instance.new("TextButton")
+			toggleBtn.Size = UDim2.new(0, 50, 0, 24)
+			toggleBtn.Position = UDim2.new(1, -56, 0, 6)
+			toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+			toggleBtn.BorderSizePixel = 0
+			toggleBtn.Text = "OFF"
+			toggleBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+			toggleBtn.Font = Enum.Font.Creepster
+			toggleBtn.TextSize = 16
+			toggleBtn.ZIndex = 7
+			toggleBtn.Parent = toggleFrame
+			applyHorrorBevel(toggleBtn)
+
+			local isToggled = false
+			toggleBtn.MouseButton1Click:Connect(function()
+				clickSound:Play()
+				isToggled = not isToggled
+				if isToggled then
+					toggleBtn.Text = "ON"
+					toggleBtn.BackgroundColor3 = accentColor
+					toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+				else
+					toggleBtn.Text = "OFF"
+					toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+					toggleBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+				end
+				if callback then callback(isToggled) end
+			end)
+		end
+
+		function TabObject:CreateDropdown(text, options, callback)
+			options = options or {}
+			local dropFrame = Instance.new("Frame")
+			dropFrame.Size = UDim2.new(1, -10, 0, 36)
+			dropFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+			dropFrame.BackgroundTransparency = 0.2
+			dropFrame.BorderSizePixel = 0
+			dropFrame.ClipsDescendants = true
+			dropFrame.ZIndex = 6
+			dropFrame.Parent = page
+			applyHorrorBevel(dropFrame, Color3.fromRGB(150, 0, 0), Color3.fromRGB(30, 0, 0))
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(0.5, -10, 0, 36)
+			label.Position = UDim2.new(0, 10, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(220, 220, 220)
+			label.Font = Enum.Font.Creepster
+			label.TextSize = 18
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 7
+			label.Parent = dropFrame
+
+			local selectBtn = Instance.new("TextButton")
+			selectBtn.Size = UDim2.new(0.48, -10, 0, 26)
+			selectBtn.Position = UDim2.new(0.5, 0, 0, 5)
+			selectBtn.BackgroundColor3 = Color3.fromRGB(70, 0, 0)
+			selectBtn.BorderSizePixel = 0
+			selectBtn.Text = "Select..."
+			selectBtn.TextColor3 = Color3.fromRGB(255, 200, 200)
+			selectBtn.Font = Enum.Font.Creepster
+			selectBtn.TextSize = 16
+			selectBtn.ZIndex = 7
+			selectBtn.Parent = dropFrame
+			applyHorrorBevel(selectBtn)
+
+			local optionContainer = Instance.new("Frame")
+			optionContainer.Size = UDim2.new(1, -20, 0, #options * 30)
+			optionContainer.Position = UDim2.new(0, 10, 0, 40)
+			optionContainer.BackgroundTransparency = 1
+			optionContainer.ZIndex = 7
+			optionContainer.Parent = dropFrame
+
+			local optLayout = Instance.new("UIListLayout")
+			optLayout.Padding = UDim.new(0, 4)
+			optLayout.Parent = optionContainer
+
+			for _, opt in ipairs(options) do
+				local optBtn = Instance.new("TextButton")
+				optBtn.Size = UDim2.new(1, 0, 0, 26)
+				optBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+				optBtn.BorderSizePixel = 0
+				optBtn.Text = opt
+				optBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+				optBtn.Font = Enum.Font.Creepster
+				optBtn.TextSize = 15
+				optBtn.ZIndex = 8
+				optBtn.Parent = optionContainer
+				applyHorrorBevel(optBtn, Color3.fromRGB(100, 0, 0), Color3.fromRGB(20, 0, 0))
+
+				optBtn.MouseButton1Click:Connect(function()
+					clickSound:Play()
+					selectBtn.Text = opt
+					dropFrame.Size = UDim2.new(1, -10, 0, 36)
+					if callback then callback(opt) end
+				end)
+			end
+
+			local isExpanded = false
+			selectBtn.MouseButton1Click:Connect(function()
+				clickSound:Play()
+				isExpanded = not isExpanded
+				if isExpanded then
+					dropFrame.Size = UDim2.new(1, -10, 0, 45 + (#options * 30))
+				else
+					dropFrame.Size = UDim2.new(1, -10, 0, 36)
+				end
+			end)
+		end
+
+		function TabObject:CreateSlider(text, min, max, default, callback)
+			min = min or 0
+			max = max or 100
+			default = default or min
+
+			local sliderFrame = Instance.new("Frame")
+			sliderFrame.Size = UDim2.new(1, -10, 0, 45)
+			sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+			sliderFrame.BackgroundTransparency = 0.2
+			sliderFrame.BorderSizePixel = 0
+			sliderFrame.ZIndex = 6
+			sliderFrame.Parent = page
+			applyHorrorBevel(sliderFrame, Color3.fromRGB(150, 0, 0), Color3.fromRGB(30, 0, 0))
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(0.6, 0, 0, 22)
+			label.Position = UDim2.new(0, 10, 0, 2)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(220, 220, 220)
+			label.Font = Enum.Font.Creepster
+			label.TextSize = 17
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 7
+			label.Parent = sliderFrame
+
+			local valLbl = Instance.new("TextLabel")
+			valLbl.Size = UDim2.new(0.35, -10, 0, 22)
+			valLbl.Position = UDim2.new(0.65, 0, 0, 2)
+			valLbl.BackgroundTransparency = 1
+			valLbl.Text = tostring(default)
+			valLbl.TextColor3 = accentColor
+			valLbl.Font = Enum.Font.Creepster
+			valLbl.TextSize = 17
+			valLbl.TextXAlignment = Enum.TextXAlignment.Right
+			valLbl.ZIndex = 7
+			valLbl.Parent = sliderFrame
+
+			local barBack = Instance.new("Frame")
+			barBack.Size = UDim2.new(1, -20, 0, 10)
+			barBack.Position = UDim2.new(0, 10, 0, 28)
+			barBack.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+			barBack.BorderSizePixel = 0
+			barBack.ZIndex = 7
+			barBack.Parent = sliderFrame
+			applyHorrorBevel(barBack, Color3.fromRGB(80, 0, 0), Color3.fromRGB(120, 0, 0))
+
+			local fillBar = Instance.new("Frame")
+			fillBar.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
+			fillBar.BackgroundColor3 = accentColor
+			fillBar.BorderSizePixel = 0
+			fillBar.ZIndex = 8
+			fillBar.Parent = barBack
+
+			local isSliding = false
+
+			local function updateSlider(input)
+				local pos = math.clamp((input.Position.X - barBack.AbsolutePosition.X) / barBack.AbsoluteSize.X, 0, 1)
+				fillBar.Size = UDim2.new(pos, 0, 1, 0)
+				local value = math.floor(min + (max - min) * pos)
+				valLbl.Text = tostring(value)
+				if callback then callback(value) end
+			end
+
+			barBack.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					isSliding = true
+					clickSound:Play()
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(input)
+				if isSliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+					updateSlider(input)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					isSliding = false
+				end
+			end)
+		end
+
+		function TabObject:CreateTextBox(text, placeholder, callback)
+			placeholder = placeholder or "Type here..."
+
+			local inputFrame = Instance.new("Frame")
+			inputFrame.Size = UDim2.new(1, -10, 0, 36)
+			inputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+			inputFrame.BackgroundTransparency = 0.2
+			inputFrame.BorderSizePixel = 0
+			inputFrame.ZIndex = 6
+			inputFrame.Parent = page
+			applyHorrorBevel(inputFrame, Color3.fromRGB(150, 0, 0), Color3.fromRGB(30, 0, 0))
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(0.5, -10, 1, 0)
+			label.Position = UDim2.new(0, 10, 0, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(220, 220, 220)
+			label.Font = Enum.Font.Creepster
+			label.TextSize = 18
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 7
+			label.Parent = inputFrame
+
+			local textBox = Instance.new("TextBox")
+			textBox.Size = UDim2.new(0.48, -10, 0, 26)
+			textBox.Position = UDim2.new(0.5, 0, 0, 5)
+			textBox.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+			textBox.BorderSizePixel = 0
+			textBox.Text = ""
+			textBox.PlaceholderText = placeholder
+			textBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+			textBox.TextColor3 = Color3.fromRGB(255, 200, 200)
+			textBox.Font = Enum.Font.Creepster
+			textBox.TextSize = 16
+			textBox.ZIndex = 7
+			textBox.Parent = inputFrame
+			applyHorrorBevel(textBox, Color3.fromRGB(120, 0, 0), Color3.fromRGB(40, 0, 0))
+
+			textBox.FocusLost:Connect(function(enterPressed)
+				clickSound:Play()
+				if callback then callback(textBox.Text, enterPressed) end
+			end)
+		end
+
+		return TabObject
+	end
+
+	local introFrame = Instance.new("Frame")
+	introFrame.Size = UDim2.new(0, 160, 0, 160)
+	introFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	introFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	introFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	introFrame.BorderSizePixel = 0
+	introFrame.ZIndex = 50
+	introFrame.Parent = screenGui
+	applyHorrorBevel(introFrame, accentColor, Color3.fromRGB(100, 0, 0))
+
+	local logoText = Instance.new("TextLabel")
+	logoText.Size = UDim2.new(1, 0, 1, 0)
+	logoText.BackgroundTransparency = 1
+	logoText.Text = "CLASSICO"
+	logoText.TextColor3 = accentColor
+	logoText.Font = Enum.Font.Creepster
+	logoText.TextSize = 36
+	logoText.TextStrokeTransparency = 0
+	logoText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	logoText.ZIndex = 51
+	logoText.Parent = introFrame
+
+	-- 🛠️ إصلاح أنيميشن المقدمة (ضمان ظهور الواجهة بدون تعليق)
+	task.spawn(function()
+		local tweenInfo = TweenInfo.new(2.0, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+
+		local logoTween = TweenService:Create(introFrame, tweenInfo, {
+			Size = UDim2.new(0, 480, 0, 480),
+			Rotation = 360,
+			BackgroundTransparency = 1
+		})
+
+		local textTween = TweenService:Create(logoText, tweenInfo, {
+			TextTransparency = 1,
+			TextStrokeTransparency = 1,
+			TextSize = 95
+		})
+
+		logoTween:Play()
+		textTween:Play()
+
+		task.wait(2.2)
+
+		if introFrame then introFrame:Destroy() end
+		mainFrame.Visible = true
+		WindowObject:Notification(title, "Script Loaded Successfully!", 4)
+	end)
+
+	return WindowObject
+end
+
+return ClassicoLib
